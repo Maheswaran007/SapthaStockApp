@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+.env
+
+# Build and dist
+build/
+dist/
+*.spec
+
+# Inno Setup output
+*.exe
+
+# VS Code
+.vscode/
+
+# SQLite DBs
+*.db
+db/
