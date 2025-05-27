@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from modules import database, add_stock, edit_stock, report
+from modules import database, add_stock, edit_stock, report, add_consume  # add_consume imported
 
 # === Initialize DB ===
 database.init_db()
@@ -26,6 +26,7 @@ class StockApp(tk.Tk):
         buttons = [
             ("Home", lambda: self.show_frame("home")),
             ("Add Stock", lambda: self.show_frame("add")),
+            ("Add/Consume", lambda: self.show_frame("add_consume")),  # New tab added here
             ("Edit Stock", lambda: self.show_frame("edit")),
             ("Report", lambda: self.show_frame("report")),
             ("Exit", self.quit)
@@ -47,6 +48,8 @@ class StockApp(tk.Tk):
                      font=("Arial", 24, "bold"), bg="white", fg="#2c3e50").pack(expand=True)
         elif page == "add":
             frame = add_stock.AddStockFrame(self.main_area)
+        elif page == "add_consume":
+            frame = add_consume.AddConsumeFrame(self.main_area)  # New frame here
         elif page == "edit":
             frame = edit_stock.EditStockFrame(self.main_area)
         elif page == "report":

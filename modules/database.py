@@ -10,10 +10,8 @@ def get_db_dir():
         if appdata:
             return os.path.join(appdata, "SapthaStockApp", "db")
         else:
-            # fallback if APPDATA not found
             return os.path.join(os.path.expanduser("~"), ".SapthaStockApp", "db")
     else:
-        # For other OSes (Linux/Mac), store in home directory
         return os.path.join(os.path.expanduser("~"), ".SapthaStockApp", "db")
 
 DB_DIR = get_db_dir()
@@ -23,15 +21,45 @@ def init_db():
     os.makedirs(DB_DIR, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS stock (
-        item_name TEXT,
-        size REAL,
-        gsm REAL,
-        bf REAL,
-        reels INTEGER,
-        weight REAL,
-        date TEXT
-    )''')
+
+    c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='stock'")
+    if not c.fetchone():
+        c.execute('''
+            CREATE TABLE stock (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                item_name TEXT,
+                size REAL,
+                gsm REAL,
+                bf REAL,
+                reels INTEGER,
+                weight REAL,
+                date TEXT
+            )
+        ''')
+    else:
+        # Check if `id` column exists
+        c.execute("PRAGMA table_info(stock)")
+        columns = [col[1] for col in c.fetchall()]
+        if 'id' not in columns:
+            c.execute("ALTER TABLE stock RENAME TO stock_old")
+            c.execute('''
+                CREATE TABLE stock (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    item_name TEXT,
+                    size REAL,
+                    gsm REAL,
+                    bf REAL,
+                    reels INTEGER,
+                    weight REAL,
+                    date TEXT
+                )
+            ''')
+            c.execute('''
+                INSERT INTO stock (item_name, size, gsm, bf, reels, weight, date)
+                SELECT item_name, size, gsm, bf, reels, weight, date FROM stock_old
+            ''')
+            c.execute("DROP TABLE stock_old")
+
     conn.commit()
     conn.close()
 
@@ -46,15 +74,33 @@ def add_stock(item_name, size, gsm, bf, reels, weight):
     conn.commit()
     conn.close()
 
+def get_all_stock_with_ids():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''
+        SELECT rowid, item_name, size, gsm, bf, reels, weight
+        FROM stock
+    ''')
+    rows = c.fetchall()
+    conn.close()
+    return rows
+
+def delete_stock(stock_id):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('DELETE FROM stock WHERE rowid = ?', (stock_id,))
+    conn.commit()
+    conn.close()
+
+
 def get_today_stock():
     date = datetime.now().strftime('%Y-%m-%d')
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''
-        SELECT item_name, size, gsm, bf, SUM(reels), SUM(weight)
+        SELECT item_name, size, gsm, bf, reels, weight
         FROM stock
         WHERE date = ?
-        GROUP BY item_name, size, gsm, bf
     ''', (date,))
     rows = c.fetchall()
     conn.close()
@@ -64,10 +110,35 @@ def get_all_stock():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''
-        SELECT item_name, size, gsm, bf, SUM(reels), SUM(weight)
+        SELECT id, item_name, size, gsm, bf, SUM(reels), SUM(weight)
         FROM stock
         GROUP BY item_name, size, gsm, bf
     ''')
     rows = c.fetchall()
     conn.close()
     return rows
+
+def update_stock_by_id(stock_id, item_name, size, gsm, bf, reels, weight):
+    date = datetime.now().strftime('%Y-%m-%d')
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''
+        UPDATE stock SET 
+            item_name = ?, size = ?, gsm = ?, bf = ?, reels = ?, weight = ?, date = ?
+        WHERE rowid = ?
+    ''', (item_name, size, gsm, bf, reels, weight, date, stock_id))
+    conn.commit()
+    conn.close()
+
+def update_stock_quantity(stock_id, qty_change):
+    date = datetime.now().strftime('%Y-%m-%d')
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    # Assuming you only want to update weight, reels should not change
+    c.execute('''
+        UPDATE stock
+        SET weight = weight + ?, date = ?
+        WHERE rowid = ?
+    ''', (qty_change, date, stock_id))
+    conn.commit()
+    conn.close()

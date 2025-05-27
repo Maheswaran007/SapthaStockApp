@@ -11,8 +11,6 @@ build/
 dist/
 *.spec
 
-# Inno Setup output
-*.exe
 
 # VS Code
 .vscode/
