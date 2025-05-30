@@ -1,2 +1,4 @@
 openpyxl
 pyinstaller
+Pillow
+tk

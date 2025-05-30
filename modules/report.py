@@ -22,7 +22,7 @@ class ReportFrame(tk.Frame):
         tk.Button(self, text="Export to Excel", command=self.export_to_excel).pack(pady=10)
 
     def load_data(self):
-        self.data = database.get_today_stock()
+        self.data = database.get_stock_report()
         for row in self.data:
             self.tree.insert("", "end", values=row)
 

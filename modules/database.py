@@ -67,6 +67,19 @@ def add_stock(item_name, size, gsm, bf, reels, weight):
     date = datetime.now().strftime('%Y-%m-%d')
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
+
+    # Check for duplicates
+    c.execute('''
+        SELECT COUNT(*) FROM stock
+        WHERE item_name = ? AND size = ? AND gsm = ? AND bf = ?
+    ''', (item_name, size, gsm, bf))
+    
+    count = c.fetchone()[0]
+    if count > 0:
+        conn.close()
+        raise ValueError("Stock already exists")
+
+    c = conn.cursor()
     c.execute('''
         INSERT INTO stock (item_name, size, gsm, bf, reels, weight, date)
         VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -93,15 +106,15 @@ def delete_stock(stock_id):
     conn.close()
 
 
-def get_today_stock():
+def get_stock_report():
     date = datetime.now().strftime('%Y-%m-%d')
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''
         SELECT item_name, size, gsm, bf, reels, weight
         FROM stock
-        WHERE date = ?
-    ''', (date,))
+        ORDER BY weight ASC
+    ''')
     rows = c.fetchall()
     conn.close()
     return rows
@@ -130,15 +143,15 @@ def update_stock_by_id(stock_id, item_name, size, gsm, bf, reels, weight):
     conn.commit()
     conn.close()
 
-def update_stock_quantity(stock_id, qty_change):
+def update_stock_quantity(stock_id, qty_change, reels_change):
     date = datetime.now().strftime('%Y-%m-%d')
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     # Assuming you only want to update weight, reels should not change
     c.execute('''
         UPDATE stock
-        SET weight = weight + ?, date = ?
+        SET weight = weight + ?, date = ?, reels = reels + ?
         WHERE rowid = ?
-    ''', (qty_change, date, stock_id))
+    ''', (qty_change, date, reels_change, stock_id))
     conn.commit()
     conn.close()

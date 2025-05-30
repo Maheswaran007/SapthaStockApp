@@ -35,4 +35,9 @@ class AddStockFrame(tk.Frame):
             for entry in self.entries.values():
                 entry.delete(0, tk.END)
         except Exception as e:
-            messagebox.showerror("Error", f"Invalid input: {e}")
+            if isinstance(e, ValueError):
+                messagebox.showerror("Already Exist", f"{e}")
+            else:
+                messagebox.showerror("Error with form", f"{e}")
+       
+            
