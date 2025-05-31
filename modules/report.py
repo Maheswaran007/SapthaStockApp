@@ -14,7 +14,7 @@ class ReportFrame(tk.Frame):
         self.load_data()
 
     def build_ui(self):
-        columns = ["Item Name", "Item Size", "Item GSM", "Item BF", "Item Reels", "Closing Stock"]
+        columns = ["Item Name", "Item Size", "Item GSM", "Item BF", "Item Reels", "Size"]
         self.tree = ttk.Treeview(self, columns=columns, show="headings", height=15)
         for col in columns:
             self.tree.heading(col, text=col)
@@ -51,7 +51,7 @@ class ReportFrame(tk.Frame):
         ws["A1"].font = Font(size=14, bold=True)
         ws["A1"].alignment = Alignment(horizontal="center")
 
-        headers = ["Item Name", "Item Size", "Item GSM", "Item BF", "No. of Reels", "Closing Stock"]
+        headers = ["Item Name", "Item Size", "Item GSM", "Item BF", "No. of Reels", "Size"]
         ws.append(headers)
 
         column_widths = [25, 15, 15, 15, 18, 10]
