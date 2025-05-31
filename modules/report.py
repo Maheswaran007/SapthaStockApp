@@ -3,6 +3,8 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from openpyxl import Workbook
 from modules import database
+from datetime import datetime
+from openpyxl.styles import Font, Alignment
 
 class ReportFrame(tk.Frame):
     def __init__(self, master):
@@ -12,7 +14,7 @@ class ReportFrame(tk.Frame):
         self.load_data()
 
     def build_ui(self):
-        columns = ["Item", "Size", "GSM", "BF", "Reels", "Weight"]
+        columns = ["Item Name", "Item Size", "Item GSM", "Item BF", "Item Reels", "Closing Stock"]
         self.tree = ttk.Treeview(self, columns=columns, show="headings", height=15)
         for col in columns:
             self.tree.heading(col, text=col)
@@ -43,9 +45,19 @@ class ReportFrame(tk.Frame):
         wb = Workbook()
         ws = wb.active
         ws.title = "TodayStock"
+        today = datetime.now().strftime("%Y-%m-%d")
+        ws.append([f"Closing Stock Report - {today}"])
+        ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=6)
+        ws["A1"].font = Font(size=14, bold=True)
+        ws["A1"].alignment = Alignment(horizontal="center")
 
-        headers = ["Item Name", "Size", "GSM", "BF", "No. of Reels", "Weight"]
+        headers = ["Item Name", "Item Size", "Item GSM", "Item BF", "No. of Reels", "Closing Stock"]
         ws.append(headers)
+
+        column_widths = [25, 15, 15, 15, 18, 10]
+        for i, width in enumerate(column_widths):
+            col_letter = chr(65 + i)  # Convert index to Excel column letter (A, B, ...)
+            ws.column_dimensions[col_letter].width = width
 
         for row in self.data:
             ws.append(row)
