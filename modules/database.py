@@ -113,7 +113,7 @@ def get_stock_report():
     c.execute('''
         SELECT item_name, size, gsm, bf, reels, weight
         FROM stock
-        ORDER BY weight ASC
+        ORDER BY size ASC
     ''')
     rows = c.fetchall()
     conn.close()
